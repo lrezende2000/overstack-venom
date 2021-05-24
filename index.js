@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 require('./database');
+require('./src/workers/messages/worker');
 
 app.use(cors());
 app.use(express.json());

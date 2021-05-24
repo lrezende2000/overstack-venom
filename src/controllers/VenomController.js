@@ -2,10 +2,9 @@ const fs = require('fs');
 const venom = require('venom-bot');
 const MessageController = require('./MessageController');
 
-exports.sendMessage = async (req, res) => {
+exports.sendMessage = async (user, phones, message) => {
   try {
-    const { message, phones } = req.body;
-    const sessionName = 'lucasPhone';
+    const sessionName = user._id;
     const filePath = `${__dirname}/../data/tokens/${sessionName}.data.json`;
     var BrowserSessionToken = {};
 
@@ -19,7 +18,7 @@ exports.sendMessage = async (req, res) => {
       }
     });
 
-    venom.create(
+    await venom.create(
       sessionName,
       undefined,
       undefined,
@@ -28,47 +27,33 @@ exports.sendMessage = async (req, res) => {
         mkdirFolderToken: '/src/data'
       },
       BrowserSessionToken
-    ).then((client) => {
+    )
+      .then((client) => {
 
-      if (Array.isArray(phones)) {
+        if (Array.isArray(phones)) {
 
-        phones.forEach((phone) => {
-          client.sendText(`55${phone}@c.us`, message);
-          MessageController.store(message, '60a46c2107e1e61480654629', phone);
-        });
+          phones.forEach((phone) => {
+            client.sendText(`55${phone}@c.us`, message);
+          });
 
-      } else if (typeof phones === 'string') {
+        } else if (typeof phones === 'string') {
 
-        client.sendText(`55${phones}@c.us`, message);
-        MessageController.store(message, '60a46c2107e1e61480654629', phones);
+          client.sendText(`55${phones}@c.us`, message);
 
-      } else {
+        } else {
 
-        return res.status(400).json({
-          error: true,
-          message: 'Parâmetros inválidos'
-        });
+          return false;
 
-      }
+        }
 
-      return res.status(200).json({
-        error: false,
-        message: 'Mensagem enviada com sucesso!'
-      });
+        return true;
 
-    })
+      })
       .catch((err) => {
-        return res.status(400).json({
-          error: true,
-          message: err.message
-        });
+        return false;
       });
-
 
   } catch (err) {
-    return res.status(400).json({
-      error: true,
-      message: err.message
-    });
+    return false;
   }
 }
